@@ -74,24 +74,24 @@ if __name__ == '__main__':
     network = Network().build()
     network.summary()
     # build a PINN model
-    pinn = PINN(network, rho, nu).build()
+    pinn = PINN(network, rho=rho, nu=nu).build()
 
     # create training input
     xy_eqn = np.random.rand(num_train_samples, 2)
-    xy_ub = np.random.rand(num_train_samples//2, 2)
-    xy_ub[..., 1] = np.round(xy_ub[..., 1])
-    xy_lr = np.random.rand(num_train_samples//2, 2)
-    xy_lr[..., 0] = np.round(xy_lr[..., 0])
+    xy_ub = np.random.rand(num_train_samples//2, 2)  # top-bottom boundaries
+    xy_ub[..., 1] = np.round(xy_ub[..., 1])          # y-position is 0 or 1
+    xy_lr = np.random.rand(num_train_samples//2, 2)  # left-right boundaries
+    xy_lr[..., 0] = np.round(xy_lr[..., 0])          # x-position is 0 or 1
     xy_bnd = np.random.permutation(np.concatenate([xy_ub, xy_lr]))
+    x_train = [xy_eqn, xy_bnd]
 
     # create training output
     zeros = np.zeros((num_train_samples, 2))
     uv_bnd = np.zeros((num_train_samples, 2))
     uv_bnd[..., 0] = u0 * np.floor(xy_bnd[..., 1])
+    y_train = [zeros, zeros, uv_bnd]
 
     # train the model using L-BFGS-B algorithm
-    x_train = [xy_eqn, xy_bnd]
-    y_train = [zeros, zeros, uv_bnd]
     lbfgs = L_BFGS_B(model=pinn, x_train=x_train, y_train=y_train)
     lbfgs.fit()
 
